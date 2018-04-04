@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+message DiceRoll {
+     string message  = 1;
+     int32 number = 2;
+}
+
