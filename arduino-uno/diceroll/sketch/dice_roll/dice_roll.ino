@@ -6,7 +6,7 @@
 
 
 const int buttonPin = 2;     // the number of the pushbutton pin
-const int ledPin =  13;      // the number of the LED pin
+const int ledPin =  16;      // the number of the LED pin
 
 const char* messages[] = {
   "the path to happiness is toward the bathroom",
@@ -58,13 +58,14 @@ void loop() {
 }
 
 // encode message as protobuf and send via serial
-void sendMsg(int idx, char* msg) {
+void sendMsg(int idx, const char* msg) {
   DiceRoll roll = DiceRoll_init_zero;
   roll.number = idx;
   status = pb_encode(&stream, DiceRoll_fields, &roll);
   if (!status){
     return;
   }
-  Serial.write(buffer, stream.bytes_written);
+  //Serial.write(buffer, stream.bytes_written);
+  Serial.print(msg);
 }
 
