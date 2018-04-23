@@ -5,7 +5,7 @@ message TempEvent {
     required int32 deviceId = 1;
     required int32 eventId = 2;
 
-    optional float humidity = 3;
-    optional float tempCel = 4;
-    optional float heatIdxCel = 5;
+    required float humidity = 3;
+    required float tempCel = 4;
+    required float heatIdxCel = 5;
 }

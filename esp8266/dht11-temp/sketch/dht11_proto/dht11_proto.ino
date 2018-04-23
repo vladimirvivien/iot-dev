@@ -18,8 +18,8 @@
 DHT dht(DHTPIN, DHTTYPE);
 
 
-const char* ssid     = "SSID-Name";
-const char* password = "SSID-Password";
+const char* ssid     = "<SSID-Name>";
+const char* password = "<WIFI Pwd>";
 const char* addr     = "192.168.1.136";
 const uint16_t port  = 10101;
 
@@ -98,6 +98,7 @@ void sendTemp(pb_TempEvent e) {
   }
   
   Serial.print("sending temp...");
+  Serial.println(e.tempCel);
   client.write(buffer, stream.bytes_written);
 }
 
