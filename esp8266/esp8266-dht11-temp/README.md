@@ -9,6 +9,7 @@ This repository contains code which makes up an IoT project that measures and vi
 - saves the data into InfluxDB as time series data
 - uses Grafana to visualize the data
 
+![esp8266-dht11-temp](./esp8266-dht11-flow.png)
 
 # What you will need
 
