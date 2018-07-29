@@ -18,9 +18,9 @@
 DHT dht(DHTPIN, DHTTYPE);
 
 
-const char* ssid     = "vivien-lab";
-const char* password = "vivien-lab";
-const char* addr     = "192.168.43.217";
+const char* ssid     = "<wifi-ssid>";
+const char* password = "<wifi-password>";
+const char* addr     = "<server-ip-addr>";
 const uint16_t port  = 10101;
 
 WiFiClient client;

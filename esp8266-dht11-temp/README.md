@@ -1,5 +1,5 @@
-Measuring Temperature with the ESP8266, Protocol Buffers, InfluxDB, Grafana, Go, and Kubernetes
-=
+# Measuring Temperature with the ESP8266, Protocol Buffers, InfluxDB, Grafana, Go, and Kubernetes
+
 
 This repository contains code which makes up an IoT project that measures and visualizes temperature data using an ESP8266, protocol buffers, InfluxDB, Grafana, and Go.  The [ESP8266](https://www.espressif.com/en/products/hardware/esp8266ex/overview) is a small, but capable, microcontroller from Espressif that can be programmed with Arduino C and many other languages that can interoperate with C.  This project uses the microcontroller board to create a temperature logger that:
 
@@ -546,7 +546,10 @@ $> go run ./server/tempsvr.go
 If the device is running and is capable of reaching the server on the provided address and port, you will immediately see a connection come through with temperature data:
 
 ```shell
-
+2018/07/29 11:01:53 Connected to  172.17.0.1:49839
+{DeviceID:12, EventID:100, Temp: 25.00, Humidity:58.00%, HeatIndex:25.07}
+2018/07/29 11:01:53 posting temp event to influxDB
+2018/07/29 11:01:53 INFO: closing connection
 ```
 
 ## Running the server code in Docker 
@@ -563,7 +566,12 @@ $> docker run -p 10101:10101 quay.io/vladimirvivien/esp8266-tempsvr
 ```
 
 # Deploying on Kubernetes (optional)
-If you are reading this, you are most likely comfortable (or curious about) using Kubernetes.  This section walks you through deploying the backend service components on a Kubernetes cluster.  It is assumed that you have access to a running Kubernetes cluster.  We will also use [`Helm`](https://docs.helm.sh/) to deploy InfluxDB and Grafana. 
+If you are reading this, you are most likely comfortable (or curious about) using Kubernetes.  This section walks you through deploying the backend service components on a Kubernetes cluster. 
+
+For this example, let us assume:
+ - You have a running local Kubernetes on [`minikube`](https://kubernetes.io/docs/setup/minikube/) 
+ - Or, if you have Kubernetes running in a cloud service or on bare metall setup, that will work too.  
+ - [`Helm`](https://docs.helm.sh/) will be used to deploy InfluxDB and Grafana. 
 
 ## Deploy InfluxDB with Helm
 
@@ -597,7 +605,7 @@ InfluxDB can be accessed via port 8086 on the following DNS name from within you
 ```
 Make note of the service DNS name (above) and port for the application (i.e. `dht11-db-influxdb.default:8086`). 
 
-### Verfication (optional)
+### Verfication
 You can validate the DNS address by doing an `nslookup` command:
 
 ```shell
@@ -623,17 +631,15 @@ _internal
 ```
 
 ## Deploy Grafana with Helm
-
+Next, use Helm again to deploy the Grafana application:
 ```shell
 $> helm install --name dht11-dashboard \
    --set adminUser=admin,adminPassword=admin \
 stable/grafana
 ```
 
-Make note of the DNS service name and port for Grafana (i.e. `volted-lizzard-grafana.default.svc.cluster.local`)
-
-### Validate (optional)
-Next, use `kubectl get pods` to get the name of the Grafana pod.  Then, from a node on the cluster, use command `kubectl port-forward` to proxy traffic to a port on the pod as follows ( don't forget to set `POD_NAME` to your actual pod name):
+### Log into Grafana portal
+Next, use `kubectl get pods` to get the name of the Grafana pod deployed.  Then, from a node (capable to be reached from outside the cluster) on the cluster, use command `kubectl port-forward` to proxy traffic to a port on the pod as follows ( don't forget to set `POD_NAME` to your actual pod name):
 
 ```shell
 $> export POD_NAME=`dht11-dashboard-grafana-79ddb8d7db-kqwh9`
@@ -651,7 +657,73 @@ From a web browser, log unto Grafana at proxied address using the admin username
 |InfluxDB Detail|`Database:dht11`, `username:svcuser`, `password:svcuser`|
 
 ## Deploy Go server 
+Now we are going to deploy the Go server Docker image (see above) in a pre-existing Kubernetes cluster so that it can be accessed by the device.
+
+### Create pod deployment
+The following uses the `kubectl run` command to create a deployment for `esp8266-tempsvr` image:
 
 ```shell
-kubectl run -it --rm tempsvr --image=quay.io/vladimirvivien/esp8266-tempsvr --restart=Never --command -- ./temp-server -r http://dht11-db-influxdb.default:8086 -u svcuser -p svcuser
+kubectl run esp8266-tempsvr --port=10101 --image=quay.io/vladimirvivien/esp8266-tempsvr -- ./temp-server -r http://dht11-db-influxdb.default:8086 -u svcuser -p svcuser
 ```
+
+Next, let us inspect the deployment to ensure the created pod is running OK:
+
+```shell
+kubectl get deployment/esp8266-tempsvr -o wide
+NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE       CONTAINERS        IMAGES                                   SELECTOR
+esp8266-tempsvr   1         1         1            1           15h       esp8266-tempsvr   quay.io/vladimirvivien/esp8266-tempsvr   run=esp8266-tempsvr
+```
+Notice the `run` command automcatically assigned a selector label for the pod of `run=esp8266-tempsvr`.
+
+## Create a service for external access
+Next, we will create a Kubernetes service that will allow us to access the running pod on port 10101, from the outside world, using the `kubectl expose` command: 
+
+```shell
+kubectl expose deployment/esp8266-tempsvr --type="NodePort" --port=10101 --target-port=10101
+```
+
+> For this example (running on minikube) we will use a service type of `NodePort`. However, that value maybe set differently (LoadBalance, etc) if you are running on cloud or bare metal. 
+
+
+Now, let's inspect the created service to ensure that it is running and is linked to the deployment with matching label values:
+
+```shell
+$> kubectl describe services/esp8266-tempsvr
+Name:                     esp8266-tempsvr
+Namespace:                default
+Labels:                   run=esp8266-tempsvr
+Annotations:              <none>
+Selector:                 run=esp8266-tempsvr
+Type:                     NodePort
+IP:                       10.108.104.51
+Port:                     <unset>  10101/TCP
+TargetPort:               10101/TCP
+NodePort:                 <unset>  31678/TCP
+Endpoints:                172.17.0.11:10101
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+```
+
+## Accessing the service
+Access the service will depend on where you have your Kubernetes cluster running.
+
+### Local cluster using minikube
+If you are using minikube, you will need to setup a network port-forward rule or a network bridge, in your minikube provider settings, that will forward traffic from the host machine to the minikue guess VM.  
+
+For simplicity, this example was tested this using a NAT port-forwar rules where all host traffic to port `10101` is forwared to the minikube VM on port value `31878` (see `TargetPort` in service` above).  This allowed me to keep my local settings on the ESP8266 device unchanged.
+
+#### Verify minikue cluster access
+You can veiry that traffic is getting to the Go temperature server pod by printing log out put from the pod:
+
+```shell
+$> kubectl logs pod/esp8266-tempsvr-74846d6b8c-d8kf4
+
+2018/07/29 11:03:01 Connected to  172.17.0.1:49852
+{DeviceID:12, EventID:100, Temp: 25.00, Humidity:58.00%, HeatIndex:25.07}
+2018/07/29 11:03:02 posting temp event to influxDB
+2018/07/29 11:03:02 INFO: closing connection
+```
+
+### Cloud services
+See your cloud provider documentation on how to setup network rules to expose compute nodes for outside access.
