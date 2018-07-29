@@ -4,4 +4,4 @@ The Raspberry Pi is a versatile platform for creating for creating IoT projects.
 
 ## Projects
 
-[Speech transcription](./transcribe) - this project uses the Raspberry Pi, Python, Google Cloud Speech service, and gRPC to create a simple/crude speech transcription.
+ - [Speech transcription](./transcribe) - this project uses the Raspberry Pi, Python, Google Cloud Speech service, and gRPC to create a simple/crude speech transcription.

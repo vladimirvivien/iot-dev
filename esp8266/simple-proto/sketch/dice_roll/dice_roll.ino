@@ -8,7 +8,7 @@
 
 const char* ssid     = "<SSID-Name>";
 const char* password = "<SSID-Password>";
-const char* addr     = "192.168.1.136";
+const char* addr     = "<server-ip-address>";
 const uint16_t port  = 10101;
 WiFiClient client;
   
