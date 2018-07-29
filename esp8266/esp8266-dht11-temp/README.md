@@ -24,7 +24,7 @@ To build and run this project you will need the followings:
 - InfluxDB
 - Grafana
 - The Go programming language (with workspace setup properly)
-- Kubernetes
+- Kubernetes (optional)
 
 # Installation and setup
 

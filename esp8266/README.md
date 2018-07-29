@@ -11,7 +11,6 @@ The following is a list of setup instructions to get you started:
 * [Configure the ESP8266](./esp8266-setup.md) board for local development
 * Setup the [ESP8266 with Arduino](https://github.com/esp8266/Arduino)
 
-
 ## ESP8266 examples
 
 * [Testing the ESP8266 WIFI](./simple-tcp) - this example lets you get started with WIFI connectivity with the ESP8266
