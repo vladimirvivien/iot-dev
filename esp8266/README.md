@@ -10,7 +10,7 @@ The following is a list of setup instructions to get you started:
 * [The ESP8266](https://en.wikipedia.org/wiki/ESP8266) microcontroller
 * [Configure the ESP8266](./esp8266-setup.md) board for local development
 * Setup the [ESP8266 with Arduino](https://github.com/esp8266/Arduino)
-* Learn about [protocol buffers](https://developers.google.com/protocol-buffers/docs/tutorials), local setup, etc
+
 
 ## ESP8266 examples
 
