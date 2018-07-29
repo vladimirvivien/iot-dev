@@ -359,11 +359,11 @@ The code will need to intialize WIFI connectivity to an access point and open a 
 ```c
 const char* ssid     = "<SSID-Name>";
 const char* password = "<WIFI Pwd>";
-const char* addr     = "192.168.1.136";
+const char* addr     = "<Server-IP";
 const uint16_t port  = 10101;
 ```
 
-The values above must be updated to match your network configuration.  Ensure the remote server program is running on a TCP port that matches the value above.
+The values above must be updated to match your network configuration.  Ensure the remote server program is running on a TCP address and port that matche the value above.
 
 
 ### The setup() function
